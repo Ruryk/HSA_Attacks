@@ -1,0 +1,22 @@
+version: '3'
+services:
+  defender:
+    build:
+      context: ./defender
+    ports:
+      - "80:80"  # HTTP port for testing HTTP Flood
+      - "443:443"  # SSL port for HTTPS protection
+      - "22:22"  # SSH for access testing
+    networks:
+      - ddos-net
+
+  attacker:
+    image: utkudarilmaz/hping3:latest
+    stdin_open: true  # Allows you to open the interface for manual command entry
+    tty: true  # For interactive mode
+    networks:
+      - ddos-net
+
+networks:
+  ddos-net:
+    driver: bridge
