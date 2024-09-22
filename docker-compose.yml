@@ -3,6 +3,7 @@ services:
   defender:
     build:
       context: ./defender
+    container_name: defender
     ports:
       - "80:80"  # HTTP port for testing HTTP Flood
       - "443:443"  # SSL port for HTTPS protection
@@ -16,6 +17,73 @@ services:
     tty: true  # For interactive mode
     networks:
       - ddos-net
+
+  telegraf:
+    image: telegraf:latest
+    user: root
+    privileged: true
+    volumes:
+      - ./telegraf/etc/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - influxdb
+      - grafana
+      - attacker
+      - defender
+      - mongodb
+    links:
+      - influxdb
+    ports:
+      - '127.0.0.1:8125:8125/udp'
+    entrypoint: /bin/sh -c "chmod 666 /var/run/docker.sock && /entrypoint.sh telegraf"
+    networks:
+      - ddos-net
+
+  grafana:
+    image: grafana/grafana:8.0.2
+    depends_on:
+      - influxdb
+    env_file: configuration.env
+    ports:
+      - '127.0.0.1:3000:3000'
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=adminpassword
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+      - ./grafana/dashboards/:/var/lib/grafana/dashboards/
+    networks:
+      - ddos-net
+
+  influxdb:
+    image: influxdb:1.8
+    env_file: configuration.env
+    ports:
+      - '127.0.0.1:8086:8086'
+    volumes:
+      - ./:/imports
+      - ./influxdb/data:/var/lib/influxdb
+    entrypoint: sh -c "influxd run -config /etc/influxdb/influxdb.conf & until influx -host localhost -execute 'CREATE DATABASE telegraf'; do echo waiting for influxdb; sleep 1; done; wait"
+    networks:
+      - ddos-net
+
+  mongodb:
+    image: mongo:4.2
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    networks:
+      - ddos-net
+
+volumes:
+  grafana_data: { }
+  influxdb_data: { }
+  mongodb_data: {}
 
 networks:
   ddos-net:

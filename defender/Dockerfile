@@ -2,7 +2,7 @@
 FROM ubuntu:latest
 
 # Update packages and install Nginx and the necessary security tools
-RUN #apt-get update && apt-get install -y nginx iptables fail2ban
+RUN #apt-get update && apt-get install -y nginx iptables fail2bandoc
 RUN apt-get update && apt-get install -y nginx
 
 # Copy the Nginx configuration file from the config folder
