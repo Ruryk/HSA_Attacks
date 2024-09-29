@@ -20,6 +20,7 @@ services:
 
   telegraf:
     image: telegraf:latest
+    container_name: telegraf
     user: root
     privileged: true
     volumes:

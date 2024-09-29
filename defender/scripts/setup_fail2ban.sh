@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Налаштовуємо fail2ban для захисту Nginx від атак
+# Setting up fail2ban to protect Nginx from attacks
 
-# Додаємо конфігурацію для захисту від brute-force та підозрілих ботів
+# Add configuration to protect against brute-force and suspicious bots
 cat <<EOF > /etc/fail2ban/jail.local
 [nginx-http-auth]
 enabled  = true
@@ -22,13 +22,13 @@ bantime  = 3600
 findtime = 600
 EOF
 
-# Створюємо фільтр для блокування підозрілих ботів
+# Create a filter to block suspicious bots
 cat <<EOF > /etc/fail2ban/filter.d/nginx-badbots.conf
 [Definition]
 failregex = ^<HOST> -.*GET.*HTTP.*(MJ12bot|AhrefsBot|SemrushBot|Baiduspider|YandexBot).*$
 EOF
 
-# Перезапускаємо fail2ban для застосування нових налаштувань
+# Restart fail2ban to apply the new settings
 service fail2ban restart
 
-echo "Fail2ban успішно налаштований і запущений."
+echo "Fail2ban is successfully configured and running."
